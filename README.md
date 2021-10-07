@@ -1,0 +1,1 @@
+ros2 run stereo_decoder stereo_decoder_node
