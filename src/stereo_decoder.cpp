@@ -21,6 +21,8 @@
 // SOFTWARE.
 
 #include <iostream>
+#include <memory>
+#include <utility>
 
 #include "stereo_decoder/stereo_decoder.hpp"
 
@@ -30,61 +32,63 @@ namespace stereo_decoder
 StereoDecoder::StereoDecoder()
 {
   // Could move thread to a Worker class one day...
-  left_thread_ = std::thread([this]()
-  {
-    while (true) {
-      std::unique_lock<std::mutex> lock(mutex_);
-      condition_.wait(lock, [this] { return stop_signal_ || !left_input_.empty(); });
+  left_thread_ = std::thread(
+    [this]()
+    {
+      while (true) {
+        std::unique_lock<std::mutex> lock(mutex_);
+        condition_.wait(lock, [this] {return stop_signal_ || !left_input_.empty();});
 
-      if (stop_signal_) {
-        break;
-      }
+        if (stop_signal_) {
+          break;
+        }
 
-      auto packet = left_input_.front();
-      left_input_.pop();
-      lock.unlock();
-      condition_.notify_all();
-
-      auto image = left_decoder_.decode(packet);
-
-      if (image) {
-        lock.lock();
-        left_output_ = std::move(image);
+        auto packet = left_input_.front();
+        left_input_.pop();
         lock.unlock();
         condition_.notify_all();
-      }
-    }
 
-    std::cout << "stopping left thread" << std::endl;
-  });
+        auto image = left_decoder_.decode(packet);
 
-  right_thread_ = std::thread([this]()
-  {
-    while (true) {
-      std::unique_lock<std::mutex> lock(mutex_);
-      condition_.wait(lock, [this] { return stop_signal_ || !right_input_.empty(); });
-
-      if (stop_signal_) {
-        break;
+        if (image) {
+          lock.lock();
+          left_output_ = std::move(image);
+          lock.unlock();
+          condition_.notify_all();
+        }
       }
 
-      auto packet = right_input_.front();
-      right_input_.pop();
-      lock.unlock();
-      condition_.notify_all();
+      std::cout << "stopping left thread" << std::endl;
+    });
 
-      auto image = right_decoder_.decode(packet);
+  right_thread_ = std::thread(
+    [this]()
+    {
+      while (true) {
+        std::unique_lock<std::mutex> lock(mutex_);
+        condition_.wait(lock, [this] {return stop_signal_ || !right_input_.empty();});
 
-      if (image) {
-        lock.lock();
-        right_output_ = std::move(image);
+        if (stop_signal_) {
+          break;
+        }
+
+        auto packet = right_input_.front();
+        right_input_.pop();
         lock.unlock();
         condition_.notify_all();
-      }
-    }
 
-    std::cout << "stopping right thread" << std::endl;
-  });
+        auto image = right_decoder_.decode(packet);
+
+        if (image) {
+          lock.lock();
+          right_output_ = std::move(image);
+          lock.unlock();
+          condition_.notify_all();
+        }
+      }
+
+      std::cout << "stopping right thread" << std::endl;
+    });
 }
 
 StereoDecoder::~StereoDecoder()
@@ -125,7 +129,7 @@ bool StereoDecoder::pop_now(
   std::lock_guard<std::mutex> lock(mutex_);
 
   if (stop_signal_ || !left_output_ || !right_output_) {
-     return false;
+    return false;
   } else {
     left = std::move(left_output_);
     right = std::move(right_output_);
@@ -138,7 +142,7 @@ bool StereoDecoder::pop_wait(
   std::unique_ptr<sensor_msgs::msg::Image> & right)
 {
   std::unique_lock<std::mutex> lock(mutex_);
-  condition_.wait(lock, [this] { return stop_signal_ || (left_output_ && right_output_); });
+  condition_.wait(lock, [this] {return stop_signal_ || (left_output_ && right_output_);});
 
   if (stop_signal_) {
     return false;
@@ -166,4 +170,4 @@ void StereoDecoder::stop()
   }
 }
 
-} // namespace stereo_decoder
+}  // namespace stereo_decoder

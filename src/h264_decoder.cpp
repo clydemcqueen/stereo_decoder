@@ -22,6 +22,7 @@
 
 #include "stereo_decoder/h264_decoder.hpp"
 
+#include <memory>
 #include <stdexcept>
 
 #include "sensor_msgs/image_encodings.hpp"
@@ -55,7 +56,8 @@ H264Decoder::~H264Decoder()
   av_frame_free(&p_frame_);
 }
 
-std::unique_ptr<sensor_msgs::msg::Image> H264Decoder::decode(std::shared_ptr<h264_msgs::msg::Packet> & packet)
+std::unique_ptr<sensor_msgs::msg::Image> H264Decoder::decode(
+  std::shared_ptr<h264_msgs::msg::Packet> & packet)
 {
   packet_.size = static_cast<int>(packet->data.size());
   packet_.data = const_cast<uint8_t *>(reinterpret_cast<uint8_t const *>(&packet->data[0]));
@@ -80,18 +82,20 @@ std::unique_ptr<sensor_msgs::msg::Image> H264Decoder::decode(std::shared_ptr<h26
 
   // Set / update sws context
   p_sws_context_ =
-    sws_getCachedContext(p_sws_context_, p_frame_->width, p_frame_->height, AV_PIX_FMT_YUV420P,
-      p_frame_->width, p_frame_->height, AV_PIX_FMT_BGR24,
-      SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
+    sws_getCachedContext(
+    p_sws_context_, p_frame_->width, p_frame_->height, AV_PIX_FMT_YUV420P,
+    p_frame_->width, p_frame_->height, AV_PIX_FMT_BGR24,
+    SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
 
   // Copy and convert from YUYV420P to BGR24
   image->data.resize(p_frame_->width * p_frame_->height * 3);
   int stride = 3 * p_frame_->width;
   uint8_t * destination = &image->data[0];
-  sws_scale(p_sws_context_, (const uint8_t * const *) p_frame_->data, p_frame_->linesize, 0,
+  sws_scale(
+    p_sws_context_, (const uint8_t * const *) p_frame_->data, p_frame_->linesize, 0,
     p_frame_->height, &destination, &stride);
 
   return image;
 }
 
-} // namespace stereo_decoder
+}  // namespace stereo_decoder

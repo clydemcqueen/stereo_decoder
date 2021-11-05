@@ -20,9 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef STEREO_DECODER_STEREO_DECODER_HPP
-#define STEREO_DECODER_STEREO_DECODER_HPP
+#ifndef STEREO_DECODER__STEREO_DECODER_HPP_
+#define STEREO_DECODER__STEREO_DECODER_HPP_
 
+#include <memory>
 #include <mutex>
 #include <condition_variable>
 #include <thread>
@@ -33,8 +34,10 @@
 namespace stereo_decoder
 {
 
-// Multi-threaded stereo H.264 decoder. Ignore timestamps, don't use ApproxSync, keep the last output.
-// This works pretty well because the camera rate is >> the SLAM rate. Be sure to process all H.264 packets.
+// Multi-threaded stereo H.264 decoder.
+// Ignore timestamps, don't use ApproxSync, keep the last output.
+// This works pretty well because the camera rate is >> the SLAM rate.
+// Be sure to process all H.264 packets.
 class StereoDecoder
 {
   std::queue<std::shared_ptr<h264_msgs::msg::Packet>> left_input_;
@@ -62,15 +65,19 @@ public:
   void push_right(const h264_msgs::msg::Packet::SharedPtr & msg);
 
   // If there is a stereo pair, consume it and return true
-  bool pop_now(std::unique_ptr<sensor_msgs::msg::Image> & left, std::unique_ptr<sensor_msgs::msg::Image> & right);
+  bool pop_now(
+    std::unique_ptr<sensor_msgs::msg::Image> & left,
+    std::unique_ptr<sensor_msgs::msg::Image> & right);
 
   // Wait for a stereo pair, return false if the decoder has stopped
-  bool pop_wait(std::unique_ptr<sensor_msgs::msg::Image> & left, std::unique_ptr<sensor_msgs::msg::Image> & right);
+  bool pop_wait(
+    std::unique_ptr<sensor_msgs::msg::Image> & left,
+    std::unique_ptr<sensor_msgs::msg::Image> & right);
 
   // Stop the decoder
   void stop();
 };
 
-} // namespace stereo_decoder
+}  // namespace stereo_decoder
 
-#endif //STEREO_DECODER_STEREO_DECODER_HPP
+#endif  // STEREO_DECODER__STEREO_DECODER_HPP_

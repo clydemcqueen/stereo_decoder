@@ -20,8 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef STEREO_DECODER_H264_DECODER_HPP
-#define STEREO_DECODER_H264_DECODER_HPP
+#ifndef STEREO_DECODER__H264_DECODER_HPP_
+#define STEREO_DECODER__H264_DECODER_HPP_
+
+#include <memory>
 
 #include "h264_msgs/msg/packet.hpp"
 #include "sensor_msgs/msg/image.hpp"
@@ -49,6 +51,6 @@ public:
   std::unique_ptr<sensor_msgs::msg::Image> decode(std::shared_ptr<h264_msgs::msg::Packet> & packet);
 };
 
-} // namespace stereo_decoder
+}  // namespace stereo_decoder
 
-#endif //STEREO_DECODER_H264_DECODER_HPP
+#endif  // STEREO_DECODER__H264_DECODER_HPP_

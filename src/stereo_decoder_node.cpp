@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <memory>
 #include <utility>
 
 #include "rclcpp/rclcpp.hpp"
@@ -42,9 +43,8 @@ class StereoDecoderNode : public rclcpp::Node
   rclcpp::TimerBase::SharedPtr spin_timer_;
 
 public:
-
   StereoDecoderNode()
-    : Node("stereo_decoder_node")
+  : Node("stereo_decoder_node")
   {
     (void) spin_timer_;
     (void) left_packet_sub_;
@@ -54,13 +54,15 @@ public:
     right_image_pub_ = create_publisher<sensor_msgs::msg::Image>("stereo/right/image_raw", 10);
 
     // H.264 packets arrive at 20 fps
-    left_packet_sub_ = create_subscription<h264_msgs::msg::Packet>("stereo/left/image_raw/h264", 10,
+    left_packet_sub_ = create_subscription<h264_msgs::msg::Packet>(
+      "stereo/left/image_raw/h264", 10,
       [this](h264_msgs::msg::Packet::SharedPtr msg) // NOLINT
       {
         RCLCPP_INFO(get_logger(), "push left %ld", msg->seq); // NOLINT
         decoder_.push_left(msg);
       });
-    right_packet_sub_ = create_subscription<h264_msgs::msg::Packet>("stereo/right/image_raw/h264", 10,
+    right_packet_sub_ = create_subscription<h264_msgs::msg::Packet>(
+      "stereo/right/image_raw/h264", 10,
       [this](h264_msgs::msg::Packet::SharedPtr msg) // NOLINT
       {
         RCLCPP_INFO(get_logger(), "push right %ld", msg->seq); // NOLINT
@@ -68,7 +70,8 @@ public:
       });
 
     // Publish images at 1 fps (1000ms timer)
-    spin_timer_ = create_wall_timer(std::chrono::milliseconds{1000},
+    spin_timer_ = create_wall_timer(
+      std::chrono::milliseconds{1000},
       [this]()
       {
         RCLCPP_INFO(get_logger(), "try to pop stereo pair"); // NOLINT
@@ -85,9 +88,9 @@ public:
   }
 };
 
-} // namespace stereo_decoder
+}  // namespace stereo_decoder
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
   setvbuf(stdout, nullptr, _IONBF, BUFSIZ);
   rclcpp::init(argc, argv);
