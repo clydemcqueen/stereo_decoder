@@ -1,0 +1,9 @@
+repositories:
+  clydemcqueen/h264_image_transport:
+    type: git
+    url: https://github.com/clydemcqueen/h264_image_transport.git
+    version: master
+  clydemcqueen/stereo_decoder:
+    type: git
+    url: https://github.com/clydemcqueen/stereo_decoder.git
+    version: main

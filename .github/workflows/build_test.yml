@@ -43,4 +43,4 @@ jobs:
         with:
           package-name: stereo_decoder
           target-ros2-distro: ${{ matrix.ros_distribution }}
-          vcs-repo-file-url: ""
+          vcs-repo-file-url: "https://raw.githubusercontent.com/clydemcqueen/stereo_decoder/main/workspace.repos"
